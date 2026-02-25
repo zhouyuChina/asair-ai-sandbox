@@ -1,5 +1,9 @@
 """断言工厂 — 根据 AssertionSpec 构建对应断言实例"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sandbox.assertion.base import BaseAssertion
 from sandbox.assertion.performance import LatencyAssertion, TokenUsageAssertion
 from sandbox.assertion.string_match import (
@@ -11,8 +15,11 @@ from sandbox.assertion.string_match import (
 from sandbox.core.exceptions import AssertionError_
 from sandbox.schema.test_case import AssertionSpec
 
+if TYPE_CHECKING:
+    from sandbox.client.judge_llm import JudgeLLMClient
 
-def build_assertion(spec: AssertionSpec, **kwargs) -> BaseAssertion:
+
+def build_assertion(spec: AssertionSpec, judge_client: JudgeLLMClient | None = None, **kwargs) -> BaseAssertion:
     """根据断言规格构建对应的断言实例"""
     match spec.type:
         case "contains":
@@ -46,7 +53,23 @@ def build_assertion(spec: AssertionSpec, **kwargs) -> BaseAssertion:
                 raise AssertionError_("token_usage 断言必须指定 max_total")
             return TokenUsageAssertion(max_total=spec.max_total)
 
-        case "llm_judge" | "scene_judge" | "json_path" | "json_field":
+        case "llm_judge":
+            if spec.criteria is None:
+                raise AssertionError_("llm_judge 断言必须指定 criteria")
+            if spec.pass_threshold is None:
+                raise AssertionError_("llm_judge 断言必须指定 pass_threshold")
+            if judge_client is None:
+                raise AssertionError_("llm_judge 断言需要配置 judge LLM（请在 sandbox.yaml 中配置 judge 段）")
+            from sandbox.assertion.llm_judge import LLMJudgeAssertion
+
+            return LLMJudgeAssertion(
+                criteria=spec.criteria,
+                pass_threshold=spec.pass_threshold,
+                judge_client=judge_client,
+                dimensions=spec.dimensions,
+            )
+
+        case "scene_judge" | "json_path" | "json_field":
             raise AssertionError_(f"断言类型 '{spec.type}' 将在后续阶段实现")
 
         case _:

@@ -1,5 +1,9 @@
 """单轮测试执行器"""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sandbox.assertion.base import AssertionContext
 from sandbox.assertion.builder import build_assertion
 from sandbox.client.dify_chat import DifyChatClient
@@ -8,11 +12,17 @@ from sandbox.schema.config import TargetConfig
 from sandbox.schema.result import AssertionResult, CaseResult, TurnResult
 from sandbox.schema.test_case import TestCaseSpec
 
+if TYPE_CHECKING:
+    from sandbox.client.judge_llm import JudgeLLMClient
+
 logger = get_logger(__name__)
 
 
 class SingleTurnRunner:
     """单轮测试执行器"""
+
+    def __init__(self, judge_client: JudgeLLMClient | None = None):
+        self.judge_client = judge_client
 
     async def execute(
         self,
@@ -47,7 +57,7 @@ class SingleTurnRunner:
             # 评估断言
             assertion_results: list[AssertionResult] = []
             for spec in case.assertions or []:
-                assertion = build_assertion(spec)
+                assertion = build_assertion(spec, judge_client=self.judge_client)
                 # 将延迟和 token 信息注入 raw_response 供性能断言使用
                 raw_with_meta = {
                     **response.raw_data,

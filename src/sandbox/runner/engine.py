@@ -2,7 +2,9 @@
 
 import asyncio
 
+from sandbox.client.judge_llm import JudgeLLMClient
 from sandbox.core.logging import get_logger
+from sandbox.runner.multi_turn import MultiTurnRunner
 from sandbox.runner.single_turn import SingleTurnRunner
 from sandbox.schema.config import SandboxConfig
 from sandbox.schema.result import CaseResult, SuiteResult
@@ -30,7 +32,14 @@ class TestEngine:
             rpm=config.execution.rate_limit_rpm,
             burst=config.execution.rate_limit_burst,
         )
-        self._single_turn_runner = SingleTurnRunner()
+
+        # 初始化 Judge LLM 客户端（如果配置了 api_key）
+        self.judge_client: JudgeLLMClient | None = None
+        if config.judge.api_key:
+            self.judge_client = JudgeLLMClient(config.judge)
+
+        self._single_turn_runner = SingleTurnRunner(judge_client=self.judge_client)
+        self._multi_turn_runner = MultiTurnRunner(judge_client=self.judge_client)
 
     async def run_suite(self, suite_spec: TestSuiteSpec) -> SuiteResult:
         """执行一个测试套件"""
@@ -90,5 +99,7 @@ class TestEngine:
         match case_type:
             case "single_turn":
                 return self._single_turn_runner
+            case "multi_turn":
+                return self._multi_turn_runner
             case _:
                 raise ValueError(f"Runner 类型 '{case_type}' 将在后续阶段实现")
