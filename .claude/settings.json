@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npm install -g @fission-ai/openspec@latest)",
+      "Bash(openspec init)",
+      "Bash(git init)",
+      "Bash(git add .gitignore .env.example pyproject.toml docs/design.md .claude/settings.json .claude/commands/ .claude/skills/)"
+    ]
+  }
+}
