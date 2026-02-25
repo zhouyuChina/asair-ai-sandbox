@@ -1,0 +1,50 @@
+suite:
+  name: "电话号码提取回归测试"
+  description: "验证AI能正确引导用户提供手机号并提取"
+  target: "production"
+  tags: ["regression", "extraction"]
+
+  shared_inputs:
+    ai_profile: "你是一个专业的客服代表，需要收集用户的手机号码"
+
+cases:
+  - id: "phone_basic"
+    name: "基本手机号提取"
+    type: "single_turn"
+    input:
+      query: "我的手机号是13812345678"
+      inputs:
+        ai_profile: "你是一个客服"
+    assertions:
+      - type: "contains"
+        value: "13812345678"
+      - type: "not_contains"
+        values: ["我是AI", "我是人工智能", "作为AI"]
+      - type: "regex"
+        pattern: "1[3-9]\\d{9}"
+      - type: "latency_ms"
+        max: 5000
+      - type: "token_usage"
+        max_total: 500
+
+  - id: "phone_with_noise"
+    name: "含噪声的手机号提取"
+    type: "single_turn"
+    input:
+      query: "嗯...那个号码嘛，138那个，1234然后5678"
+    assertions:
+      - type: "contains"
+        value: "13812345678"
+      - type: "latency_ms"
+        max: 5000
+
+  - id: "phone_rejection"
+    name: "拒绝提供手机号"
+    type: "single_turn"
+    input:
+      query: "我不想告诉你我的手机号"
+    assertions:
+      - type: "not_contains"
+        values: ["我是AI", "我是人工智能"]
+      - type: "latency_ms"
+        max: 5000

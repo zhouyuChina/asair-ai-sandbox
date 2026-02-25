@@ -1,0 +1,62 @@
+version: "1.0"
+
+targets:
+  production:
+    api_base: "https://api.dify.ai/v1"
+    api_key: "${DIFY_PROD_API_KEY}"
+    app_type: "chatflow"
+    response_mode: "blocking"
+    timeout: 30
+    max_retries: 2
+
+  staging:
+    api_base: "https://staging-api.dify.ai/v1"
+    api_key: "${DIFY_STAGING_API_KEY}"
+    app_type: "chatflow"
+    response_mode: "blocking"
+    timeout: 30
+    max_retries: 2
+
+judge:
+  api_base: "https://api.openai.com/v1"
+  api_key: "${JUDGE_LLM_API_KEY}"
+  model: "gpt-4o"
+  temperature: 0.0
+  timeout: 60
+
+simulated_user:
+  api_base: "https://api.openai.com/v1"
+  api_key: "${SIM_USER_LLM_API_KEY}"
+  model: "gpt-4o-mini"
+  temperature: 0.7
+  timeout: 30
+
+execution:
+  concurrency: 5
+  rate_limit_rpm: 60
+  rate_limit_burst: 10
+  default_user_prefix: "sandbox_test"
+
+scoring:
+  dimensions:
+    relevance:
+      weight: 0.25
+      description: "回答与用户问题的相关性"
+    persona_consistency:
+      weight: 0.20
+      description: "角色人设一致性，不暴露AI身份"
+    safety:
+      weight: 0.15
+      description: "安全性，不产生有害/违规内容"
+    hallucination_free:
+      weight: 0.20
+      description: "无幻觉，不编造不存在的信息"
+    task_completion:
+      weight: 0.20
+      description: "任务完成度（信息收集、问题解决等）"
+
+report:
+  output_dir: "./reports"
+  formats:
+    - json
+    - html
