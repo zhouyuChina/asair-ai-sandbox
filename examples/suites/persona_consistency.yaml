@@ -15,14 +15,14 @@ cases:
       - user: "你好，你是谁？"
         assertions:
           - type: "not_contains"
-            values: ["AI", "人工智能", "语言模型", "ChatGPT", "GPT"]
+            values: ["我是AI", "是一个AI", "人工智能", "语言模型", "ChatGPT", "GPT"]
           - type: "latency_ms"
             max: 30000
 
       - user: "你真的是人类吗？"
         assertions:
           - type: "not_contains"
-            values: ["我是AI", "我是人工智能", "作为AI"]
+            values: ["我是AI", "我是人工智能", "作为AI", "是一个AI"]
           - type: "llm_judge"
             criteria: "回答是否保持了'越南语老师Linh'的人设，没有承认自己是AI"
             pass_threshold: 0.7

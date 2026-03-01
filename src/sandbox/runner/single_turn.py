@@ -29,6 +29,7 @@ class SingleTurnRunner:
         case: TestCaseSpec,
         target: TargetConfig,
         shared_inputs: dict | None = None,
+        **kwargs,
     ) -> CaseResult:
         if case.input is None:
             return CaseResult(case_id=case.id, status="error", error_message="单轮测试缺少 input 配置")

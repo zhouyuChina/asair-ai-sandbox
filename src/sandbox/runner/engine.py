@@ -8,8 +8,10 @@ from sandbox.runner.multi_turn import MultiTurnRunner
 from sandbox.runner.single_turn import SingleTurnRunner
 from sandbox.schema.config import SandboxConfig
 from sandbox.schema.result import CaseResult, SuiteResult
+from sandbox.schema.scene import SceneFile
 from sandbox.schema.test_case import TestSuiteSpec
 from sandbox.utils.rate_limiter import TokenBucketRateLimiter
+from sandbox.utils.yaml_loader import load_and_validate
 
 logger = get_logger(__name__)
 
@@ -93,7 +95,23 @@ class TestEngine:
         async with self.semaphore:
             await self.rate_limiter.acquire()
             runner = self._get_runner(case.type)
-            return await runner.execute(case, target_config, shared_inputs)
+
+            # 加载黄金场景（如果测试用例引用了场景文件）
+            scene = None
+            if case.judge_scene:
+                try:
+                    scene_file = load_and_validate(case.judge_scene, SceneFile)
+                    scene = scene_file.scene
+                    logger.info(f"用例 {case.id} 加载场景: {scene.name}")
+                except Exception as e:
+                    logger.error(f"用例 {case.id} 加载场景失败: {e}")
+                    return CaseResult(
+                        case_id=case.id,
+                        status="error",
+                        error_message=f"加载场景文件失败: {e}",
+                    )
+
+            return await runner.execute(case, target_config, shared_inputs, scene=scene)
 
     def _get_runner(self, case_type: str):
         match case_type:

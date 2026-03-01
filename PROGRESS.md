@@ -14,12 +14,12 @@
   - CLI 入口（sandbox run / sandbox validate）
   - 验证：22 单元测试通过 + Dify 云端 3 用例端到端通过
 
-- [ ] **阶段二：多轮对话 & LLM Judge**
+- [x] **阶段二：多轮对话 & LLM Judge** (2026-02-27)
   - 多轮对话运行器（conversation_id 链式传递）
   - Judge LLM 客户端（OpenAI 兼容接口）
   - LLM-as-Judge 断言（0~1 评分）
   - 评分系统升级（维度评分）
-  - 验证：人设一致性多轮测试 + LLM 评分跑通
+  - 验证：36 单元测试通过 + 人设一致性多轮 4 轮对话 + LLM Judge 评分端到端通过
 
 - [ ] **阶段三：场景提炼 & 场景 Judge**
   - 场景 Schema（BehaviorSpec, SceneSpec）

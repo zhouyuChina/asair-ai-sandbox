@@ -2,8 +2,10 @@
 
 import asyncio
 import sys
+from pathlib import Path
 
 import click
+import yaml
 from rich.console import Console
 from rich.table import Table
 
@@ -107,6 +109,62 @@ def validate(suite_files: tuple[str, ...]):
     console.print(f"\n{valid_count} 个套件有效，共 {total_cases} 个测试用例。")
     if valid_count < len(suite_files):
         sys.exit(2)
+
+
+@cli.command()
+@click.argument("input_files", nargs=-1, required=True)
+@click.option("--output-dir", default="./golden_scenes", help="场景输出目录")
+@click.pass_context
+def learn(ctx, input_files: tuple[str, ...], output_dir: str):
+    """从真人聊天记录中提炼黄金场景"""
+    config_path = ctx.obj["config_path"]
+
+    try:
+        config = load_config(config_path)
+    except Exception as e:
+        console.print(f"[red]配置加载失败: {e}[/red]")
+        sys.exit(2)
+
+    if not config.judge.api_key:
+        console.print("[red]错误: sandbox learn 需要配置 Judge LLM（请在 sandbox.yaml 中配置 judge 段）[/red]")
+        sys.exit(2)
+
+    from sandbox.client.judge_llm import JudgeLLMClient
+    from sandbox.extractor.scene_extractor import SceneExtractor
+
+    judge_client = JudgeLLMClient(config.judge)
+    extractor = SceneExtractor(judge_client)
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    async def _extract_all():
+        for input_file in input_files:
+            file_path = Path(input_file)
+            if not file_path.exists():
+                console.print(f"  [red]文件不存在: {input_file}[/red]")
+                continue
+
+            console.print(f"  分析: {input_file} ...")
+            chat_text = file_path.read_text(encoding="utf-8")
+            try:
+                scene = await extractor.extract(chat_text, source_path=str(file_path))
+                # 输出为 YAML
+                scene_data = {"scene": scene.model_dump(exclude_none=True)}
+                out_file = output_path / f"{scene.id}.yaml"
+                out_file.write_text(
+                    yaml.dump(scene_data, allow_unicode=True, default_flow_style=False, sort_keys=False),
+                    encoding="utf-8",
+                )
+                console.print(f"  [green]OK[/green] → {out_file}  (场景: {scene.name}, {len(scene.behaviors)} 个行为)")
+            except Exception as e:
+                console.print(f"  [red]提炼失败 ({input_file}): {e}[/red]")
+
+        await judge_client.close()
+
+    console.print(f"\n[bold]场景提炼[/bold]  输出目录: {output_dir}")
+    asyncio.run(_extract_all())
+    console.print("[bold]完成[/bold]")
 
 
 def _print_summary(suite_score):

@@ -14,6 +14,7 @@ from sandbox.schema.test_case import TestCaseSpec
 
 if TYPE_CHECKING:
     from sandbox.client.judge_llm import JudgeLLMClient
+    from sandbox.schema.scene import SceneSpec
 
 logger = get_logger(__name__)
 
@@ -29,6 +30,7 @@ class MultiTurnRunner:
         case: TestCaseSpec,
         target: TargetConfig,
         shared_inputs: dict | None = None,
+        scene: SceneSpec | None = None,
     ) -> CaseResult:
         if not case.turns:
             return CaseResult(case_id=case.id, status="error", error_message="多轮测试缺少 turns 配置")
@@ -64,7 +66,7 @@ class MultiTurnRunner:
                 raw_with_meta = {**response.raw_data, "_latency_ms": response.latency_ms}
 
                 for spec in turn.assertions:
-                    assertion = build_assertion(spec, judge_client=self.judge_client)
+                    assertion = build_assertion(spec, judge_client=self.judge_client, scene=scene)
                     result = await assertion.evaluate(response.answer, raw_with_meta, ctx)
                     assertion_results.append(result)
 

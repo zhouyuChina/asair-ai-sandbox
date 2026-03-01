@@ -43,7 +43,7 @@ src/sandbox/
 | 阶段 | 内容 | 状态 |
 |------|------|------|
 | **阶段一** | 基础框架：配置加载、Dify 客户端、单轮测试、字符串/性能断言、JSON 报告、CLI | 已完成 |
-| **阶段二** | 多轮对话 & LLM Judge：多轮运行器、Judge LLM 客户端、LLM-as-Judge 断言 | 代码+单测完成，待端到端验证 |
+| **阶段二** | 多轮对话 & LLM Judge：多轮运行器、Judge LLM 客户端、LLM-as-Judge 断言 | 已完成 |
 | **阶段三** | 场景提炼 & 场景 Judge：场景 Schema、sandbox learn、场景驱动评分 | 未开始 |
 | **阶段四** | 模拟用户 & 压力测试：LLM 驱动动态对话、Workflow、Streaming | 未开始 |
 | **阶段五** | A/B 对比 & 报告：sandbox compare、HTML 报告、Prompt 优化顾问 | 未开始 |
@@ -51,9 +51,22 @@ src/sandbox/
 
 ### 当前待办
 
-1. **阶段二端到端验证**：用户需在 `.env` 配置 `JUDGE_LLM_API_KEY`（OpenAI Key），
-   然后运行 `sandbox run examples/suites/persona_consistency.yaml` 验证多轮 + LLM Judge 全链路。
-2. 验证通过后更新 `PROGRESS.md` 阶段二打勾，进入阶段三开发。
+1. **阶段三开发**：场景提炼 & 场景 Judge — 场景 Schema、sandbox learn 命令、场景驱动评分。
+
+## 开发方式
+
+采用**接口先行 + 分层 TDD** 策略：
+
+- **适合 TDD 的模块**（接口清晰、行为可预期）：先写测试再实现
+  - 新断言类型（scene_judge、json_path）
+  - 新运行器（simulated_user、workflow）
+  - 数据解析/转换逻辑（A/B 对比、报告生成）
+- **探索性模块**（需要迭代、接口会变）：先实现再补测试
+  - 场景提炼器（sandbox learn）— prompt 工程迭代性强
+  - Prompt 优化顾问 — 输出格式需反复调整
+  - Streaming 模式 — 依赖外部 SSE 行为
+- 每个模块先定好输入输出的 Schema 和接口签名
+- 每个阶段交付时必须保证测试覆盖完整
 
 ## 开发规范
 

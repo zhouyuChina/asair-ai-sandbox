@@ -7,14 +7,14 @@ targets:
     api_key: "${DIFY_PROD_API_KEY}"
     app_type: "chatflow"
     response_mode: "blocking"
-    timeout: 30
+    timeout: 90
     max_retries: 2
 
 # Judge LLM 配置（用于 LLM-as-Judge 断言评分）
 judge:
-  api_base: "https://api.openai.com/v1"
+  api_base: "${JUDGE_LLM_BASE_URL}"
   api_key: "${JUDGE_LLM_API_KEY}"
-  model: "gpt-4o"
+  model: "gemini-3.1-pro-preview"
   temperature: 0.0
   timeout: 60
 

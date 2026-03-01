@@ -1,0 +1,58 @@
+scene:
+  id: "phone_collection"
+  name: "电话号码收集"
+  source: "chats/real_conversation_01.txt"
+  description: "在自然对话中引导用户提供手机号，过程流畅不突兀"
+
+  context:
+    trigger: "用户咨询产品/课程，需要后续跟进"
+    precondition: "已建立基本信任，了解用户需求"
+
+  behaviors:
+    - id: "natural_transition"
+      name: "自然过渡"
+      description: "先满足用户疑问，再顺势引出收号需求，不生硬"
+      good_example: "方便留个手机号吗？我让课程顾问给您详细介绍"
+      bad_example: "请提供您的手机号码。"
+      weight: 0.3
+
+    - id: "purpose_explanation"
+      name: "说明用途"
+      description: "告诉用户为什么需要手机号（课程顾问联系），降低防备心理"
+      good_example: "我让课程顾问给您详细介绍"
+      bad_example: "我们需要您的手机号"
+      weight: 0.2
+
+    - id: "privacy_mask"
+      name: "隐私保护"
+      description: "复述手机号时做脱敏处理（中间四位用*），体现专业和安全感"
+      good_example: "已记录您的手机号 139****5678"
+      bad_example: "已记录您的手机号 13912345678"
+      weight: 0.2
+
+    - id: "follow_up_promise"
+      name: "后续承诺"
+      description: "明确告知后续动作和时间（24小时内联系），给用户确定感"
+      good_example: "课程顾问会在24小时内联系您"
+      bad_example: "好的，我们会联系您"
+      weight: 0.15
+
+    - id: "warm_closing"
+      name: "温暖收尾"
+      description: "主动询问还有没有其他问题，保持服务温度"
+      good_example: "还有其他想了解的吗？"
+      weight: 0.15
+
+  conversation_pattern:
+    - phase: "需求了解"
+      turns: "1-2"
+      key_action: "了解用户背景和需求"
+    - phase: "方案推荐"
+      turns: "3"
+      key_action: "给出推荐并过渡到收号"
+    - phase: "信息收集"
+      turns: "4-5"
+      key_action: "收集手机号并确认"
+    - phase: "结束"
+      turns: "6"
+      key_action: "承诺跟进 + 温暖收尾"

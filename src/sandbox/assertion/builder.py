@@ -17,9 +17,15 @@ from sandbox.schema.test_case import AssertionSpec
 
 if TYPE_CHECKING:
     from sandbox.client.judge_llm import JudgeLLMClient
+    from sandbox.schema.scene import SceneSpec
 
 
-def build_assertion(spec: AssertionSpec, judge_client: JudgeLLMClient | None = None, **kwargs) -> BaseAssertion:
+def build_assertion(
+    spec: AssertionSpec,
+    judge_client: JudgeLLMClient | None = None,
+    scene: SceneSpec | None = None,
+    **kwargs,
+) -> BaseAssertion:
     """根据断言规格构建对应的断言实例"""
     match spec.type:
         case "contains":
@@ -69,7 +75,22 @@ def build_assertion(spec: AssertionSpec, judge_client: JudgeLLMClient | None = N
                 dimensions=spec.dimensions,
             )
 
-        case "scene_judge" | "json_path" | "json_field":
+        case "scene_judge":
+            if judge_client is None:
+                raise AssertionError_("scene_judge 断言需要配置 judge LLM（请在 sandbox.yaml 中配置 judge 段）")
+            if scene is None:
+                raise AssertionError_("scene_judge 断言需要指定 judge_scene（黄金场景文件路径）")
+            from sandbox.assertion.scene_judge import SceneJudgeAssertion
+
+            return SceneJudgeAssertion(
+                scene=scene,
+                judge_client=judge_client,
+                phase=spec.phase,
+                behavior_ids=spec.behaviors,
+                pass_threshold=spec.pass_threshold or 0.7,
+            )
+
+        case "json_path" | "json_field":
             raise AssertionError_(f"断言类型 '{spec.type}' 将在后续阶段实现")
 
         case _:
